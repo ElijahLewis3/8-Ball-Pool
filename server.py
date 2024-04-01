@@ -21,15 +21,40 @@ xmlns="http://www.w3.org/2000/svg"
 xmlns:xlink="http://www.w3.org/1999/xlink">
 <rect width="1350" height="2700" x="0" y="0" fill="#C0D0C0";"/>""";
 
+GAME_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pool Table Shot</title>
+    <script src="script.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<h1 class="title">Billiards</h1>
+<div class="container" id="svg-container">
+    <!-- SVG content will be appended here -->
+</div>
+
+</body>
+</html> """
+
+# player1_name = ""
+# player2_name = ""
+# game_name = ""
+
 # handler for our web-server - handles both GET and POST requests
 class MyHandler( BaseHTTPRequestHandler ):
+
+    session_data = {}
 
     def do_GET(self):
         # parse the URL to get the path and form data
         parsed  = urlparse( self.path );
 
         # check if the web-pages matches the list
-        if parsed.path in [ '/index.html' ]:
+        if parsed.path in [ '/homepage.html', '/index.html' ]:
 
             # retreive the HTML file
             fp = open( '.'+self.path );
@@ -94,9 +119,47 @@ class MyHandler( BaseHTTPRequestHandler ):
 
 
     def do_POST(self):
-        # hanle post request
+        # handle post request
         # parse the URL to get the path and form data
-        if self.path == "/handle_mouse_position":
+        parsed = urlparse(self.path)
+        
+        # Define variables outside of the conditions
+        player1_name = None
+        player2_name = None
+        game_name = None
+
+        if self.path == "/start_game":
+            # Parse form data
+            form = cgi.FieldStorage(
+                fp=self.rfile,
+                headers=self.headers,
+                environ={'REQUEST_METHOD': 'POST'}
+            )
+
+            # Extract player and game information from form data
+            player1_name = form.getvalue('player1_name')
+            player2_name = form.getvalue('player2_name')
+            game_name = form.getvalue('game_name')
+            # Store player and game names in session data
+            self.session_data['player1_name'] = player1_name
+            self.session_data['player2_name'] = player2_name
+            self.session_data['game_name'] = game_name
+
+
+            # Generate the game page HTML with the provided information
+            game_html = GAME_HTML.format(player1_name=player1_name, player2_name=player2_name, game_name=game_name)
+
+            # Respond with the game page HTML
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html')
+            self.end_headers()
+            self.wfile.write(game_html.encode('utf-8'))
+            
+        elif self.path == "/handle_mouse_position":
+            
+            player1_name = self.session_data.get('player1_name')
+            player2_name = self.session_data.get('player2_name')
+            game_name = self.session_data.get('game_name')
 
             db = Physics.Database()
 
@@ -113,17 +176,15 @@ class MyHandler( BaseHTTPRequestHandler ):
 
             table = createNewTable()
 
-            game = Physics.Game( gameName="Game 01", player1Name="Stefan", player2Name="Efren Reyes" );
-            game.shoot( "Game 01", "Stefan", table, vx, vy);
+            # game = Physics.Game(game_name, player1_name, player2_name)
+            game = Physics.Game(gameName=game_name, player1Name=player1_name, player2Name=player2_name)
+            # game.shoot(gameName=game_name, playerName=player1_name, table, vx, vy)
+            game.shoot(game_name, player1_name, table, vx, vy)
 
-
-            tableID = 0
+            tableID = 0 
             
             svgs = []
             table = db.readTable(tableID)
-
-            svgs.append(HEADER);
-            print(svgs);
 
             while table is not None:
                 svgdata = table.svg()
@@ -136,7 +197,14 @@ class MyHandler( BaseHTTPRequestHandler ):
             self.end_headers()
             response_json = json.dumps(svgs)
             self.wfile.write(response_json.encode('utf-8'))
-            # self.wfile.write(bytes("Data received successfully!", "utf-8"))
+
+        else:
+            # generate 404 for POST requests that aren't handled above
+            self.send_response(404)
+            self.end_headers()
+            self.wfile.write(bytes("404: %s not found" % self.path, "utf-8"))
+
+
 
 
 def nudge():
@@ -179,230 +247,3 @@ if __name__ == "__main__":
     httpd = HTTPServer( ( 'localhost', int(sys.argv[1]) ), MyHandler );
     print( "Server listing in port:  ", int(sys.argv[1]) );
     httpd.serve_forever();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# import sys;
-# import os; 
-# import cgi;
-# import Physics;
-# import math;
-
-# from http.server import HTTPServer;
-# from http.server import BaseHTTPRequestHandler;
-
-# from urllib.parse import urlparse, parse_qsl;
-
-# HEADER = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-# <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
-# "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-# xmlns="http://www.w3.org/2000/svg"
-# xmlns:xlink="http://www.w3.org/1999/xlink">
-# <rect width="1350" height="2700" x="0" y="0" fill="#C0D0C0";"/>""";
-
-
-# class MyHandler(BaseHTTPRequestHandler):
-#     def do_GET(self):
-#         # parse the URL to get the path and form data
-#         parsed  = urlparse( self.path );
-
-#         # check if the web-pages matches the list
-#         if parsed.path in [ '/startPage.html' ]:
-
-#             # retreive the HTML file
-#             fp = open( '.'+self.path );
-#             content = fp.read();
-
-#             # generate the headers
-#             self.send_response( 200 ); # OK
-#             self.send_header( "Content-type", "text/html" );
-#             self.send_header( "Content-length", len( content ) );
-#             self.end_headers();
-
-#             # send it to the broswer
-#             self.wfile.write( bytes( content, "utf-8" ) );
-#             fp.close();
-
-#         #ensures that it is a valid svg file before trying to read it
-#         elif parsed.path.endswith('.svg'):
-            
-#             fp = open( '.'+self.path, 'rb' );
-#             content = fp.read();
-#             self.send_response(200);
-#             self.send_header('Content-type', 'image/svg+xml');
-#             self.send_header('Content-length', len(content));
-#             self.end_headers();
-#             self.wfile.write(content);
-#             fp.close();
-
-#         elif parsed.path == '/script.js':
-#             with open('script.js', 'rb') as fp:
-#                 content = fp.read()
-
-#             # Send a 200 OK response with the JavaScript content
-#             self.send_response(200)
-#             self.send_header('Content-type', 'application/javascript')
-#             self.send_header('Content-length', len(content))
-#             self.end_headers()
-#             self.wfile.write(content)
-
-#         elif parsed.path == '/styles.css':
-#             with open('styles.css', 'rb') as fp:
-#                 content = fp.read()
-
-#             # Send a 200 OK response with the JavaScript content
-#             self.send_response(200)
-#             self.send_header('Content-type', 'text/css')
-#             self.send_header('Content-length', len(content))
-#             self.end_headers()
-#             self.wfile.write(content)
-
-
-#         else:
-#             # generate 404 for GET requests that aren't the 3 files above
-#             self.send_response( 404 );
-#             self.end_headers();
-#             self.wfile.write( bytes( "404: %s not found" % self.path, "utf-8" ) );
-
-#     def do_POST(self):
-#         # hanle post request
-#         # parse the URL to get the path and form data
-#         parsed  = urlparse( self.path );
-
-#         if parsed.path in [ '/startPageInfo.html' ]:
-
-#             # get data send as Multipart FormData (MIME format)
-#             form = cgi.FieldStorage( fp=self.rfile,
-#                                      headers=self.headers,
-#                                      environ = { 'REQUEST_METHOD': 'POST',
-#                                                  'CONTENT_TYPE': 
-#                                                    self.headers['Content-Type'],
-#                                                } 
-#                                    );
-                                
-                                
-
-#             # Delete all svg files
-#             for filename in os.listdir('.'):
-#                 if filename.startswith('table-') and filename.endswith('.svg'):
-#                     os.remove(filename)
-
-#             # Access form data for Still Ball
-#             #casted as unsigned char & doubles(floats)
-#             if 'player1_name' not in form or 'player2_name' not in form or 'game_name' not in form:
-#                 # Handle the case where one or more form fields are missing
-#                 # You can return an error response or redirect the user to the form page with an error message
-#                 # For example:
-#                 self.send_response(400)  # Bad Request
-#                 self.end_headers()
-#                 self.wfile.write(b"Missing form fields")
-#                 return
-
-#             # Access form data for player names and game name
-#             player1NameForm = form['player1_name'].value.strip()
-#             player2NameForm = form['player2_name'].value.strip()
-#             gameNameForm = form['game_name'].value.strip()
-
-#             # Check if any of the form fields are empty after stripping whitespace
-#             if not player1NameForm or not player2NameForm or not gameNameForm:
-#                 # Handle the case where one or more form fields are empty
-#                 # You can return an error response or redirect the user to the form page with an error message
-#                 # For example:
-#                 self.send_response(400)  # Bad Request
-#                 self.end_headers()
-#                 self.wfile.write(b"One or more form fields are empty")
-#                 return
-
-#             # create a table and objects to that table
-#             table = Physics.Table();
-#             Physics.Table.setUpTable(table);
-#             game = Physics.Game(gameName = gameNameForm, player1Name = player1NameForm, player2Name = player2NameForm);
-        
-#             f = open("StartTable.svg","w");
-#             f.write(table.svg());
-
-#             svgList = []
-#             svgList.append(Physics.HEADER);
-
-#             for i in table:
-#                 if i is not None:
-#                     if i.obj.still_ball.number == 0 and isinstance(i, Physics.StillBall):
-#                         cueBallString = """ <circle id="cueBall" cx="{}" cy="{}" r="28.5" fill="WHITE" onclick="trackon();"/>\n """.format(i.obj.still_ball.pos.x, i.obj.still_ball.pos.y);
-#                         svgList.append(cueBallString);
-#                         continue;
-#                     svgList.append(i.svg());
-
-#             cueX1 = table[10].obj.still_ball.pos.x;
-#             cueY1 = table[10].obj.still_ball.pos.y;
-
-#             # cueX2 = cueX1 + cueStickLength * math.cos(math.radians(angle));
-#             cueX2 = cueX1 + 100;
-#             cueY2 = cueY1 + 100;
-
-#             # Generate HTML for display
-#             response_html = """
-#             <html>
-#             <head>
-#                 <title>Form Response</title>
-#                 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"> </script>
-#                 <script src="script.js"></script>
-#                 <link rel="stylesheet" type="text/css" href="styles.css">
-#             </head>
-#             <body>
-#                 <h2>Form Response</h2>
-#                 <a href="startPage.html">Back</a>
-#                 <p>Player1Name: {player1Name}</p>
-#                 <p>Player2Name: {player2Name}</p>
-#                 <p>Game Name: {gameName}</p>
-#                 <div id="svgDiv">
-#                 <svg version="1.1" width="700" height="1375" viewBox="-25 -25 1400 2750" xmlns="http://www.w3.org/2000/svg" onmousemove="trackit(event)">""".format(player1Name=player1NameForm, player2Name=player2NameForm, gameName=gameNameForm)
-#             for i in svgList:
-#                 response_html += i;
-#             response_html += """ 
-#                     <line id="cueStick" x1="{}" y1="{}" x2="{}" y2="{}" style="stroke: black; stroke-width: 10;"  />
-#                     </svg>
-#                 </div>
-#             </body>
-#             </html>""".format(cueX1, cueY1, cueX2, cueY2);
-#             # Send response to the browser
-#             self.send_response(200)
-#             self.send_header('Content-type', 'text/html')
-#             self.end_headers()
-#             self.wfile.write(response_html.encode('utf-8'))
-
-
-
-
-#         else:
-#             # generate 404 for POST requests that aren't the file above
-#             self.send_response( 404 );
-#             self.end_headers();
-#             self.wfile.write( bytes( "404: %s not found" % self.path, "utf-8" ) );
-        
-
-
-
-# if __name__ == "__main__":
-#     httpd = HTTPServer( ( 'localhost', int(sys.argv[1]) ), MyHandler );
-#     print( "Server listing in port:  ", int(sys.argv[1]) );
-#     httpd.serve_forever();

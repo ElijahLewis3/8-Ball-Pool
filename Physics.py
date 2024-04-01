@@ -476,7 +476,7 @@ class Database():
                     returnTable += new_sb;
                     
                 else:
-                    ball_vel = Physics.Coordinate(ball[4],ball[5]);
+                    ball_vel = Physics.Coordinate(float(ball[4]),float(ball[5]));
                     ball_acc_x = 0.0;
                     ball_acc_y = 0.0;
 

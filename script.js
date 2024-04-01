@@ -17,25 +17,34 @@
         };
         var data = JSON.stringify({ "vx": vx, "vy": vy });
         xhr.send(data);
-        handleSVGResponse(xhr.responseText);
-
     }
+    
 
 
     // Function to handle SVG response
     function handleSVGResponse(responseText) {
+        console.log("Response received:", responseText); // Log the responseText for debugging
         var svgContainer = document.getElementById('svg-container');
         svgContainer.innerHTML = ''; // Clear previous content
     
-        var svgs = JSON.parse(responseText);
-        console.log("SVGS = ", svgs);
-        svgs.forEach(function(svgData) {
-            var objectTag = document.createElement('object');
-            objectTag.setAttribute('type', 'image/svg+xml');
-            objectTag.setAttribute('data', 'data:image/svg+xml,' + encodeURIComponent(svgData));
-            svgContainer.appendChild(objectTag);
-        });
+        if (responseText.trim() === "") {
+            console.error("Empty response received"); // Log an error if the response is empty
+            return; // Exit the function early if the response is empty
+        }
+    
+        try {
+            var svgs = JSON.parse(responseText);
+            svgs.forEach(function(svgData) {
+                var objectTag = document.createElement('object');
+                objectTag.setAttribute('type', 'image/svg+xml');
+                objectTag.setAttribute('data', 'data:image/svg+xml,' + encodeURIComponent(svgData));
+                svgContainer.appendChild(objectTag);
+            });
+        } catch (error) {
+            console.error("Error parsing JSON:", error); // Log any errors that occur during JSON parsing
+        }
     }
+    
 
     document.addEventListener('DOMContentLoaded', function () {
         // Create the default SVG element
@@ -154,87 +163,3 @@
         // Add mouseup event listener to the document
         document.addEventListener('mouseup', onMouseUp);
     });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// console.log(document);
-
-// function validateForm() {
-//     var player1Name = document.getElementById("player1_name").value.trim();
-//     var player2Name = document.getElementById("player2_name").value.trim();
-//     var gameName = document.getElementById("game_name").value.trim();
-
-//     if (player1Name === "" || player2Name === "" || gameName === "") {
-//         alert("Please fill in all the fields.");
-//         return false; // Prevent form submission
-//     }
-//     return true; // Proceed with form submission
-// }
-
-// function trackon()
-//       {
-//         track = true;
-//       }
-
-
-
-// var track = false;
-// $(document).ready(function() {
-//     var cueStick = $("#cueStick");
-
-//     // Hide the cue stick initially
-//     cueStick.hide();
-//     $('#cueBall').click(function() {
-//         // Enable tracking
-//         track = true;
-//         // Show the cue stick
-//         $('#cueStick').show();
-//       });
-//     // Function to update the position of the cue stick
-
-// });
-
-// function trackit(event) {
-//     if (track) {
-//         var cueBall = document.getElementById("cueBall");
-//         var cueBallPosX = parseFloat($("#cueBall").attr("cx"));
-//         var cueBallPosY = parseFloat($("#cueBall").attr("cy"));
-
-//         // Get the position of the SVG element on the page
-//         var svgOffset = $("#svgDiv").offset();
-//         var svgPosX = svgOffset.left;
-//         var svgPosY = svgOffset.top;
-
-//         // Adjust mouseX and mouseY to be relative to the SVG
-//         var mouseX = event.pageX - svgPosX;
-//         var mouseY = event.pageY - svgPosY;
-
-//         // Calculate the angle between the cue stick and the mouse position
-//         var angle = Math.atan2(mouseY - cueBallPosY, mouseX - cueBallPosX);
-
-//         // Calculate the new position of the cue stick
-//         var cueStickLength = 100; // Adjust the length of the cue stick as needed
-//         var cueStickX2 = cueBallPosX + cueStickLength * Math.cos(angle);
-//         var cueStickY2 = cueBallPosY + cueStickLength * Math.sin(angle);
-
-//         // Update the position of the cue stick
-//         $('#cueStick').attr('x1', cueBallPosX);
-//         $('#cueStick').attr('y1', cueBallPosY);
-//         $('#cueStick').attr('x2', cueStickX2);
-//         $('#cueStick').attr('y2', cueStickY2);
-//     }
-// }
