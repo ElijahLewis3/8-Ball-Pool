@@ -1,0 +1,17 @@
+# Compiled objects
+*.o
+*.so
+
+# SWIG generated files
+phylib_wrap.c
+phylib.py
+
+# Python
+__pycache__/
+*.pyc
+
+# Database
+*.db
+
+# Generated SVGs
+*.svg
