@@ -26,19 +26,23 @@ GAME_HTML = """<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pool Table Shot</title>
-    <script src="script.js"></script>
+    <title>{game_name} - Billiards</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
 <h1 class="title">Billiards</h1>
-<div class="container" id="svg-container">
-    <!-- SVG content will be appended here -->
+<div class="divider"></div>
+<div class="game-header">
+    <div class="player-badge active" data-player="{player1_name}"><span class="label">Player 1</span> <span class="name">{player1_name}</span></div>
+    <div class="player-badge" data-player="{player2_name}"><span class="label">Player 2</span> <span class="name">{player2_name}</span></div>
 </div>
+<p id="game-status">Drag the cue ball to shoot</p>
+<div class="container" id="svg-container"></div>
 
+<script src="script.js"></script>
 </body>
-</html> """
+</html>"""
 
 # player1_name = ""
 # player2_name = ""
@@ -145,11 +149,20 @@ class MyHandler( BaseHTTPRequestHandler ):
             self.session_data['player2_name'] = player2_name
             self.session_data['game_name'] = game_name
 
+            # Reset database and initialize game state for a new game
+            if os.path.exists('phylib.db'):
+                os.remove('phylib.db')
 
-            # Generate the game page HTML with the provided information
+            self.session_data['table'] = createNewTable()
+            self.session_data['game'] = Physics.Game(
+                gameName=game_name,
+                player1Name=player1_name,
+                player2Name=player2_name
+            )
+            self.session_data['current_player'] = player1_name
+
             game_html = GAME_HTML.format(player1_name=player1_name, player2_name=player2_name, game_name=game_name)
 
-            # Respond with the game page HTML
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
@@ -157,11 +170,18 @@ class MyHandler( BaseHTTPRequestHandler ):
             
         elif self.path == "/handle_mouse_position":
             
+            game = self.session_data.get('game')
+            table = self.session_data.get('table')
+            game_name = self.session_data.get('game_name')
             player1_name = self.session_data.get('player1_name')
             player2_name = self.session_data.get('player2_name')
-            game_name = self.session_data.get('game_name')
+            current_player = self.session_data.get('current_player', player1_name)
 
-            db = Physics.Database()
+            if game is None or table is None or self.session_data.get('game_over'):
+                self.send_response(400)
+                self.end_headers()
+                self.wfile.write(b'No active game')
+                return
 
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
@@ -170,33 +190,34 @@ class MyHandler( BaseHTTPRequestHandler ):
             vx = data['vx']
             vy = data['vy']
 
-            # Now you can use finalX and finalY for your purpose
-            print("Received vx:", vx)
-            print("Received vy:", vy)
+            game.shoot(game_name, current_player, table, vx, vy)
 
-            table = createNewTable()
+            final_table = game._final_table
+            svgs = list(game._shot_svgs)
 
-            # game = Physics.Game(game_name, player1_name, player2_name)
-            game = Physics.Game(gameName=game_name, player1Name=player1_name, player2Name=player2_name)
-            # game.shoot(gameName=game_name, playerName=player1_name, table, vx, vy)
-            game.shoot(game_name, player1_name, table, vx, vy)
+            next_player = player2_name if current_player == player1_name else player1_name
+            response = {"svgs": svgs, "current_player": next_player}
 
-            tableID = 0 
-            
-            svgs = []
-            table = db.readTable(tableID)
+            eight_ball_on_table = has_ball(final_table, 8)
 
-            while table is not None:
-                svgdata = table.svg()
-                svgs.append(svgdata)     
-                tableID += 1
-                table = db.readTable(tableID)
+            if not eight_ball_on_table:
+                response["winner"] = next_player
+                self.session_data['game_over'] = True
+            else:
+                cue_ball = final_table.cueBall(final_table)
+                if cue_ball is None:
+                    pos = Physics.Coordinate(675, 2025)
+                    sb = Physics.StillBall(0, pos)
+                    final_table += sb
+                    svgs.append(final_table.svg())
+
+                self.session_data['table'] = final_table
+                self.session_data['current_player'] = next_player
 
             self.send_response(200)
             self.send_header("Content-type", "application/json")
             self.end_headers()
-            response_json = json.dumps(svgs)
-            self.wfile.write(response_json.encode('utf-8'))
+            self.wfile.write(json.dumps(response).encode('utf-8'))
 
         else:
             # generate 404 for POST requests that aren't handled above
@@ -206,6 +227,15 @@ class MyHandler( BaseHTTPRequestHandler ):
 
 
 
+
+def has_ball(table, number):
+    for obj in table:
+        if obj is not None:
+            if isinstance(obj, Physics.StillBall) and obj.obj.still_ball.number == number:
+                return True
+            if isinstance(obj, Physics.RollingBall) and obj.obj.rolling_ball.number == number:
+                return True
+    return False
 
 def nudge():
     return random.uniform( -1.5, 1.5 );

@@ -682,7 +682,9 @@ class Game():
         new_cue_ball.obj.rolling_ball.acc.y = acc_y;
 
         new_cue_ball.acc = Coordinate(acc_x,acc_y);
-        
+
+        self._shot_svgs = [];
+
         while table is not None:
             start_time = table.time;
             new_table = table;
@@ -699,10 +701,9 @@ class Game():
                 copyTable = new_table.roll(new_time);
                 copyTable.time = start_time + new_time;
 
-                tableID = self.new_db.writeTable(copyTable);
-                write_svg(tableID, copyTable);
-                self.new_db.saveTableShot(tableID, shotID);
+                self._shot_svgs.append(copyTable.svg());
 
+        self._final_table = new_table;
         return shotID;
 
 def nudge():
