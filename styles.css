@@ -1,40 +1,222 @@
-h1 {
-    text-align: center;
-    font-family: system-ui, -apple-system;
-    color: rgb(0, 0, 0);
-    font-stretch: expanded;
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&display=swap');
+
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-svg {
-    /* Adjust height and width as needed */
-    height: 580px;
-    width: 700px;
-    border-radius: 10px;
-    display: inline-block;
+body {
+    background: linear-gradient(160deg, #0a0f0d 0%, #0f1a14 40%, #0d1510 100%);
+    color: #f0e6d3;
+    font-family: Georgia, 'Times New Roman', serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 2rem;
+}
+
+h1.title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 900;
+    font-size: 3.2rem;
     text-align: center;
+    color: #d4a843;
+    margin-top: 2.5rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-shadow: 0 2px 15px rgba(212, 168, 67, 0.25);
+}
+
+h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 400;
+    font-size: 1.2rem;
+    text-align: center;
+    color: #8a9a88;
+    margin-top: 0.3rem;
+    letter-spacing: 0.06em;
+}
+
+.divider {
+    width: 80px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #d4a843, transparent);
+    margin: 0.8rem auto 0;
+}
+
+/* ======================== */
+/*      HOMEPAGE: Form      */
+/* ======================== */
+
+.form-card {
+    background: linear-gradient(150deg, #1a2820 0%, #142018 100%);
+    border: 1px solid rgba(212, 168, 67, 0.15);
+    border-radius: 14px;
+    padding: 2.5rem 2.2rem;
+    margin-top: 2rem;
+    width: 90%;
+    max-width: 420px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.form-card label {
+    display: block;
+    font-size: 0.78rem;
+    color: #9aaa94;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.35rem;
+    margin-top: 1.4rem;
+}
+
+.form-card label:first-of-type {
+    margin-top: 0;
+}
+
+.form-card input[type="text"] {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: rgba(10, 20, 14, 0.8);
+    border: 1px solid #2a3a30;
+    border-radius: 8px;
+    color: #f0e6d3;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 1rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    outline: none;
+}
+
+.form-card input[type="text"]:focus {
+    border-color: #d4a843;
+    box-shadow: 0 0 0 3px rgba(212, 168, 67, 0.12);
+}
+
+.form-card input[type="text"]::placeholder {
+    color: #3a4a40;
+}
+
+.btn {
+    display: block;
+    width: 100%;
+    margin-top: 2.2rem;
+    padding: 0.9rem;
+    background: linear-gradient(135deg, #d4a843, #b8922f);
+    border: none;
+    border-radius: 8px;
+    color: #0a0f0d;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(212, 168, 67, 0.25);
+}
+
+.btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* ======================== */
+/*       GAME PAGE          */
+/* ======================== */
+
+.game-header {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.player-badge {
+    background: linear-gradient(150deg, #1a2820, #142018);
+    border: 2px solid rgba(212, 168, 67, 0.08);
+    border-radius: 8px;
+    padding: 0.5rem 1.4rem;
+    font-size: 0.9rem;
+    color: #8a9a88;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: border-color 0.4s ease, box-shadow 0.4s ease, opacity 0.4s ease;
+    opacity: 0.5;
+}
+
+.player-badge.active {
+    border-color: #d4a843;
+    box-shadow: 0 0 18px rgba(212, 168, 67, 0.2);
+    opacity: 1;
+}
+
+.player-badge .label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #5a6a58;
+}
+
+.player-badge .name {
+    color: #d4a843;
+    font-weight: 700;
+}
+
+#game-status {
+    text-align: center;
+    margin-top: 0.8rem;
+    font-size: 0.85rem;
+    color: #6a7a68;
+    letter-spacing: 0.04em;
+    min-height: 1.4em;
+    transition: color 0.3s, font-size 0.3s;
+    animation: status-pulse 3s ease-in-out infinite;
+}
+
+#game-status.game-over {
+    color: #d4a843;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    animation: none;
+    text-shadow: 0 2px 12px rgba(212, 168, 67, 0.3);
+}
+
+@keyframes status-pulse {
+    0%, 100% { opacity: 0.65; }
+    50% { opacity: 1; }
 }
 
 .container {
     display: flex;
-    justify-content: center; /* Center horizontally */
-    align-items: center; /* Center vertically */
+    justify-content: center;
+    align-items: flex-start;
+    margin-top: 1.2rem;
+    padding: 0 1rem;
 }
 
-body {
-    background-color: rgb(142, 149, 141);
+#svg-container svg {
+    max-height: 72vh;
+    width: auto;
+    display: block;
+    border-radius: 6px;
+    filter: drop-shadow(0 8px 32px rgba(0, 0, 0, 0.55));
 }
 
-
-.line {
-    stroke: black;
-    stroke-width: 20;
-    pointer-events: none; /* To ensure the line doesn't interfere with mouse events */
-}
-
-.cueContainer {
-    position: relative;
-    width: 1000px;
-    height: 1000px;
-    background-color: #f0f0f0;
-    margin: 50px auto;
+.footer-note {
+    margin-top: auto;
+    padding-top: 2rem;
+    text-align: center;
+    font-size: 0.72rem;
+    color: #3a4a38;
+    letter-spacing: 0.06em;
 }

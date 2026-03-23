@@ -3,22 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pool Table Shot - Home</title>
+    <title>Billiards - New Game</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
 <h1 class="title">Billiards</h1>
-<h2>Enter Game Information</h2>
-<form action="/start_game" method="post">
-    <label for="player1_name">Player 1 Name:</label><br>
-    <input type="text" id="player1_name" name="player1_name"><br>
-    <label for="player2_name">Player 2 Name:</label><br>
-    <input type="text" id="player2_name" name="player2_name"><br>
-    <label for="game_name">Game Name:</label><br>
-    <input type="text" id="game_name" name="game_name"><br><br>
-    <input type="submit" value="Start Game">
+<div class="divider"></div>
+<h2>New Game</h2>
+
+<form class="form-card" action="/start_game" method="post">
+    <label for="player1_name">Player 1</label>
+    <input type="text" id="player1_name" name="player1_name" placeholder="Enter name" required>
+
+    <label for="player2_name">Player 2</label>
+    <input type="text" id="player2_name" name="player2_name" placeholder="Enter name" required>
+
+    <label for="game_name">Game Name</label>
+    <input type="text" id="game_name" name="game_name" placeholder="Enter game name" required>
+
+    <button type="submit" class="btn">Break &amp; Play</button>
 </form>
+
+<p class="footer-note">8-Ball Pool Physics Simulator</p>
 
 </body>
 </html>
